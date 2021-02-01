@@ -12,11 +12,14 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+// home
+Route::get('/', 'HomeController@index')->name('home');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Publics
+Route::get('posts', 'PostController@index')->name('posts.index');
+Route::get('posts/{slug}', 'PostController@show')->name('posts.show');
 
+// Logs
 Auth::routes();
 
 
@@ -26,6 +29,7 @@ Route::prefix('admin')
     ->middleware('auth')
     ->group(function() {
         // Admin home
-         Route::get('/', 'HomeController@index')->name('home');
+        Route::get('/', 'HomeController@index')->name('home');
         // Crud Post Routs
+        Route::resource('posts', 'PostController');
     });

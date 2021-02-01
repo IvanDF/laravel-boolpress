@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Post;
 
 class PostController extends Controller
 {
@@ -14,7 +17,11 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::where('user_id' , Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.posts.index', compact('posts'));
     }
 
     /**
@@ -24,7 +31,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.posts.create');
     }
 
     /**
@@ -35,7 +42,25 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->all();
+
+        // Validation
+        $request->validate([
+           'title' => 'required',
+           'body' => 'required',
+        ]);
+
+        $data['user_id'] = Auth::id();
+
+        $data['slug'] = Str::slug($data['title'], '-');
+
+        $newPost = new Post();
+        $newPost->fill($data);
+        $saved = $newPost->save();
+
+        if ($saved) {
+            return redirect()->route('admin.posts.index');
+        }
     }
 
     /**
@@ -55,9 +80,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        return view('admin.posts.edit', compact('post'));
     }
 
     /**
@@ -67,9 +92,21 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request,Post $post)
     {
-        //
+        $data = $request->all();
+
+        $request->validate([
+            'title' => 'required',
+            'body' => 'required',
+        ]);
+
+        $data['slug'] = Str::slug($data['title'], '-');
+        $updated = $post->update($data);
+
+        if ($updated) {
+            return redirect()->route('posts.show', $post->slug);
+        }
     }
 
     /**
